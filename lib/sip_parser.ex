@@ -16,12 +16,12 @@ defmodule SIPParser do
   @spec parse(binary()) :: {:ok, t} | {:error, term()}
   def parse(sip_message) do
     parsed_message =
-      String.split(sip_message, "\n\n")
+      String.split(sip_message, "\r\n")
       |> clean_raw_message()
       |> extract_headers_body_start_line()
 
-    h = List.first(parsed_message)
-    b = hd(tl(parsed_message))
+    h = hd(parsed_message)
+    b = Enum.at(parsed_message, 1)
     sl = List.last(parsed_message)
 
     {:ok, %__MODULE__{headers: h,  body: b, start_line: sl}}
@@ -36,18 +36,12 @@ defmodule SIPParser do
   def get_request_user(parsed_sip_message) do
     user =
       parsed_sip_message.start_line
-      |>
-      String.split()
-      |>
-      Enum.at(1)
-      |>
-      String.split("@")
-      |>
-      List.first()
-      |>
-      String.split(":")
-      |>
-      List.last()
+      |> String.split()
+      |> Enum.at(1)
+      |> String.split("@")
+      |> List.first()
+      |> String.split(":")
+      |> List.last()
     user
   end
 
@@ -56,31 +50,48 @@ defmodule SIPParser do
   User-Agent in the `Allow`-header.
   """
   @spec allowed?(t, binary()) :: boolean()
-  def allowed?(_parsed_sip_message, _method) do
-    false
-  end
+  def allowed?(parsed_sip_message,  method) do
+    is_allowed =
+      parsed_sip_message.headers["Allow"]
+      |> String.split(",")
+      |> Enum.map(fn x -> String.trim x end)
+      |> Enum.member?(method)
 
-  defp clean_raw_message(raw_message) do
-    message = Enum.reject raw_message, fn x -> x == "\n" end
-    message = Enum.reject message, fn x -> x == "" end
-    message
+     is_allowed
     end
+
+   defp clean_raw_message(raw_message) do
+    message =
+      raw_message
+      |> Enum.reject(fn x -> x == "\n" end)
+      |> Enum.reject(fn x -> x == "" end)
+    message
+  end
 
   defp extract_headers_body_start_line(message) do
     start_line = hd(message)
-    headers_body = tl(message)
-    body = Enum.reject headers_body, fn x -> String.contains? x, ":" end
-    body = Enum.join(body, ",")
+    headers_and_body = tl(message)
 
-    headers = Enum.reject headers_body, fn x -> String.contains? x, "=" end
-    headers = Enum.map headers, fn x ->
+    body =
+      headers_and_body
+      |>
+      Enum.reject(fn x -> String.contains? x, ":" end)
+      |>
+      Enum.join( ",")
+
+    headers =
+      headers_and_body
+      |>
+      Enum.reject(fn x -> String.contains? x, "=" end)
+      |>
+      Enum.map(fn x ->
       n = String.split(x, ":")
       {hd(n), hd(tl(n))}
-    end
+    end)
+    |>
+    Enum.into(%{})
 
-    headers = Enum.into(headers, %{})
-
-    [headers, body, start_line]
+  [headers, body, start_line]
 
   end
 
