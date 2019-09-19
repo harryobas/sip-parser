@@ -74,25 +74,20 @@ defmodule SIPParser do
 
     body =
       headers_and_body
-      |>
-      Enum.reject(fn x -> String.contains? x, ":" end)
-      |>
-      Enum.join( ",")
+      |> Enum.reject(fn x -> String.contains? x, ":" end)
+      |> Enum.join( ",")
 
     headers =
       headers_and_body
-      |>
-      Enum.reject(fn x -> String.contains? x, "=" end)
-      |>
-      Enum.map(fn x ->
-      n = String.split(x, ":")
-      {hd(n), hd(tl(n))}
-    end)
-    |>
-    Enum.into(%{})
+      |> Enum.reject(fn x -> String.contains? x, "=" end)
+      |> Enum.map(fn x ->
+        n = String.split(x, ":")
+        {hd(n), hd(tl(n))}
+      end)
+      |> Enum.into(%{})
 
-  [headers, body, start_line]
-
+   [headers, body, start_line]
+   
   end
 
 end
