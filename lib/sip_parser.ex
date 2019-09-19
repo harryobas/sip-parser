@@ -16,7 +16,7 @@ defmodule SIPParser do
   @spec parse(binary()) :: {:ok, t} | {:error, term()}
   def parse(sip_message) do
     parsed_message =
-      String.split(sip_message, "\r\n")
+      sip_message
       |> clean_raw_message()
       |> extract_headers_body_start_line()
 
@@ -63,6 +63,7 @@ defmodule SIPParser do
    defp clean_raw_message(raw_message) do
     message =
       raw_message
+      |> String.split("\r\n")
       |> Enum.reject(fn x -> x == "\n" end)
       |> Enum.reject(fn x -> x == "" end)
     message
@@ -87,7 +88,7 @@ defmodule SIPParser do
       |> Enum.into(%{})
 
    [headers, body, start_line]
-   
+
   end
 
 end
