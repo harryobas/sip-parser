@@ -33,8 +33,22 @@ defmodule SIPParser do
   first line of the SIP request.
   """
   @spec get_request_user(t) :: binary()
-  def get_request_user(_parsed_sip_message) do
-    "user"
+  def get_request_user(parsed_sip_message) do
+    user =
+      parsed_sip_message.start_line
+      |>
+      String.split()
+      |>
+      Enum.at(1)
+      |>
+      String.split("@")
+      |>
+      List.first()
+      |>
+      String.split(":")
+      |>
+      List.last()
+    user
   end
 
   @doc """
