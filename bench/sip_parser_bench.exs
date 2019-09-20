@@ -2,7 +2,7 @@ defmodule SIPParserBench do
   @moduledoc """
   Simple benchmarking the SIP message parser
   """
-  @sip_message File.read!("priv/SIP_INVITE.txt")
+  @sip_message File.read!("../priv/SIP_INVITE.txt")
 
   Benchee.run(
     %{

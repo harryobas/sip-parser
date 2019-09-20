@@ -20,9 +20,7 @@ defmodule SIPParser do
       |> clean_raw_message()
       |> extract_headers_body_start_line()
 
-    h = hd(parsed_message)
-    b = Enum.at(parsed_message, 1)
-    sl = List.last(parsed_message)
+    {h, b, sl} = parsed_message
 
     {:ok, %__MODULE__{headers: h,  body: b, start_line: sl}}
 
@@ -87,7 +85,7 @@ defmodule SIPParser do
       end)
       |> Enum.into(%{})
 
-   [headers, body, start_line]
+   {headers, body, start_line}
 
   end
 
